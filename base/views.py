@@ -46,7 +46,7 @@ def individual(request):
 
 def auth(request):
     client = Client()
-    auth_link = client.authorization_url(5928,'http://127.0.0.1:8000/auth_success/')
+    auth_link = client.authorization_url(5928,'https://elevation-challenge.herokuapp.com/auth_success/')
     return render(request, 'auth.html', {'leaderboard':get_leaderboard().reverse(), 'auth_link':auth_link})
 
 def auth_success(request):
@@ -66,3 +66,14 @@ def auth_success(request):
     else:
         result = 'already exists'
     return render(request, 'auth_success.html', {'leaderboard':get_leaderboard().reverse(), 'result':result})
+
+def force_update(request):
+    new_stamp = data_update(time_stamp=datetime.utcnow())
+    new_stamp.save()
+    # go through each user and update their activities for this month
+    this_month = datetime.today().month
+    this_year = datetime.today().year
+    before = datetime(this_year, this_month+1, 1)
+    after = datetime(this_year, this_month, 1)
+    data_scraper(after, before)
+    return render(request, 'force_update.html')
