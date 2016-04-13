@@ -78,7 +78,8 @@ WSGI_APPLICATION = 'elevation.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': dj_database_url.config(default=os.environ["DATABASE_URL"]),
+    'local': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'elevation',
         'USER': 'heroku',
