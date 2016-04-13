@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <h1>Authorize Elevation Challenge to Access your Strava Account</h1>
+    <p>This can be undone at anytime from within Strava.</p>
+    <a type="button" class="btn btn-lg btn-default" href={{ auth_link }}><span class="glyphicon glyphicon-flash"></span> Connect Account</a>
+  </div>
+</div>
+{% endblock %}

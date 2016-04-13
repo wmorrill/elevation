@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+
+<div class="jumbotron text-center">
+  <div class="container">
+      {% for person in this_person %}
+    <h2><a href="https://www.strava.com/athletes/{{ person.id }}"><font color="FFFFFF">{{ person.firstname }} {{ person.lastname }}</font></a></h2>
+      {% endfor %}
+  </div>
+</div>
+<div class="container">
+    {% load chartit %}
+    {{ sample_chart|load_charts:"container" }}
+    <div style="height:500px" id="container">chart should be rendered here</div>
+  <hr>
+  <div class="row">
+  </div> <!-- row -->
+    <table class="CSSTableGenerator">
+        <tr>
+            <th>Day </th>
+            <th>Activity Name</th>
+            <th>Elevation (ft)</th>
+            <th>Cumulative (ft)</th>
+            <th>Distance (mi)</th>
+            <th>Total Time</th>
+            <th>Moving Time</th>
+            <th>Type</th>
+        </tr>
+        {% for item in activity_list %}
+        <tr>
+            <td> {{ item.day }}</td>
+            <td> <a href="https://www.strava.com/activities/{{ item.id }}">{{ item.name }}</a></td>
+            <td> {{ item.total_elevation_gain|floatformat:2 }}</td>
+            <td> {{ item.cumulative_elevation|floatformat:2 }}</td>
+            <td> {{ item.distance|floatformat:2 }}</td>
+            <td> {{ item.elapsed_time }}</td>
+            <td> {{ item.moving_time }}</td>
+            <td> {{ item.type }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+{% endblock %}

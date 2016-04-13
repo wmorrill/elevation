@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <h2>Welcome to the Elevation Challenge</h2>
+  </div>
+</div>
+<div class="container">
+    {% load chartit %}
+    {{ sample_chart|load_charts:"container" }}
+    <div style="height:500px" id="container">chart should be rendered here</div>
+  <hr>
+  <div class="row">
+    <button type="button", value="Remove All" onclick="<script>
+    $(highcharts-0.series).each(function(){
+        //this.hide();
+        this.setVisible(false, false);
+    });
+    chart.redraw();
+    </script>">Remove All</button>
+  </div> <!-- row -->
+    <table class="CSSTableGenerator">
+        <tr>
+            <th>Rank </th>
+            <th>First Name </th>
+            <th>Last Name </th>
+            <th>Elevation </th>
+        </tr>
+        {% for item in leaderboard %}
+        <tr>
+            <td> {{ forloop.counter }}</td>
+            <td> {{ item.firstname }}</td>
+            <td> {{ item.lastname }}   </td>
+            <td> {{ item.elevation }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+{% endblock %}

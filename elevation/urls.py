@@ -16,7 +16,14 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+import base.views
 
 urlpatterns = [
+    url(r'^$', base.views.index, name='index'),
     url(r'^admin/', admin.site.urls),
+    url(r'^auth/', base.views.auth, name='authorization_request'),
+    url(r'^auth_success/', base.views.auth_success, name='authorization_success'),
+    url(r'^individual/', base.views.individual, name='individual_data'),
+
+    url(r'^.*/$', base.views.index, name='index'),
 ]
