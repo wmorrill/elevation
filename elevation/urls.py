@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^auth/', base.views.auth, name='authorization_request'),
     url(r'^auth_success/', base.views.auth_success, name='authorization_success'),
     url(r'^individual/', base.views.individual, name='individual_data'),
-    url(r'^force_update/', base.views.update, name='force_update'),
+    url(r'^force_update/', base.views.force_update, name='force_update'),
 
     url(r'^.*/$', base.views.index, name='index'),
 ]
