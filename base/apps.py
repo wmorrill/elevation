@@ -81,7 +81,7 @@ def get_elevation_sum(daily_dictionary):
 
 def get_leaderboard():
     # return a queryset of athletes in order of elevation total
-    return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).order_by('elevation')
+    return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).order_by('-elevation')
 
 def elev_per_day(activity_set, before, after):
     date_start = after
@@ -100,8 +100,8 @@ def elevation_chart(before, after):
     this_series = []
     position = 1
     for each_athlete in get_leaderboard():
-        print(get_cumulative_queryset(each_athlete, after, before))
-        this_series.append({'options':{'source':get_cumulative_queryset(each_athlete, after, before)},
+        cumulative_set = get_cumulative_queryset(each_athlete, after, before))
+        this_series.append({'options':{'source': cumulative_set},
                        'terms':[{str(each_athlete)+'_date':'day'}, {str(each_athlete): 'cumulative_elevation'}]})
         position += 1
     ds = chartit.DataPool(this_series)
@@ -138,9 +138,9 @@ def athlete_chart(this_person):
 
     cht = chartit.Chart(
         datasource=ds,
-        series_options=[{'options':{'type': 'column', 'stacking': False},
+        series_options=[{'options':{'type': 'column', 'stacking': False, 'xAxis':0, 'yAxis':0},
                          'terms':{'day': ['total_elevation_gain']}},
-                        {'options':{'type': 'line', 'stacking': False},
+                        {'options':{'type': 'line', 'stacking': False, 'xAxis':0, 'yAxis':1},
                          'terms':{'day': ['cumulative_elevation']},
                         }],
         chart_options={'title': {'text': 'Activity Stats'},

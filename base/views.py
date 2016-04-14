@@ -36,7 +36,7 @@ def index(request):
     return render(request, 'index.html', {'sample_chart':elev_chart, 'leaderboard':leaderboard})
 
 def individual(request):
-    leaderboard = get_leaderboard().reverse()
+    leaderboard = get_leaderboard()
     athlete_id = request.GET.get('id')
     print(athlete_id)
     this_person = athlete.objects.filter(id = athlete_id)
@@ -47,7 +47,7 @@ def individual(request):
 def auth(request):
     client = Client()
     auth_link = client.authorization_url(5928,'https://elevation-challenge.herokuapp.com/auth_success/')
-    return render(request, 'auth.html', {'leaderboard':get_leaderboard().reverse(), 'auth_link':auth_link})
+    return render(request, 'auth.html', {'leaderboard':get_leaderboard(), 'auth_link':auth_link})
 
 def auth_success(request):
     temp_code = request.GET.get('code')  # temp auth code
@@ -65,7 +65,7 @@ def auth_success(request):
         result = 'added'
     else:
         result = 'already exists'
-    return render(request, 'auth_success.html', {'leaderboard':get_leaderboard().reverse(), 'result':result})
+    return render(request, 'auth_success.html', {'leaderboard':get_leaderboard(), 'result':result})
 
 def force_update(request):
     new_stamp = data_update(time_stamp=datetime.utcnow())
