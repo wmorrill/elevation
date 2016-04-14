@@ -43,3 +43,8 @@ class activity(models.Model):
     def __str__(self):
         return self.name
 
+class month(models.Model):
+    athlete_id = models.ForeignKey(athlete,on_delete=models.CASCADE,)
+    day = models.IntegerField()
+    cum_elev = models.FloatField()
+

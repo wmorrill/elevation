@@ -41,7 +41,7 @@ def individual(request):
     print(athlete_id)
     this_person = athlete.objects.filter(id = athlete_id)
     chart = athlete_chart(this_person)
-    activity_list = activity.objects.filter(athlete_id = this_person).order_by('day')
+    activity_list = activity.objects.filter(athlete_id = this_person).order_by('start_date_local')
     return render(request, 'individual.html', {'this_person': this_person, 'sample_chart': chart, 'activity_list':activity_list, 'leaderboard':leaderboard})
 
 def auth(request):

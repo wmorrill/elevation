@@ -76,19 +76,37 @@ WSGI_APPLICATION = 'elevation.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
-DATABASES = {
-    'default': dj_database_url.config(default=os.environ["DATABASE_URL"]),
-    'local': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'elevation',
-        'USER': 'heroku',
-        'PASSWORD': '2#EDptl!',
-        'HOST': '',
-        'PORT': '',
+try:
+    DATABASES = {
+        'default': dj_database_url.config(default=os.environ["DATABASE_URL"]),
+        'local': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'elevation',
+            'USER': 'heroku',
+            'PASSWORD': '2#EDptl!',
+            'HOST': '',
+            'PORT': '',
+        }
     }
-}
-
+except KeyError:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'd8bph8uvgmot1m',
+            'USER': 'thjkneoaglonki',
+            'PASSWORD': '5GPtOD-IWUDv-RDrpdYdTk7QV8',
+            'HOST': 'ec2-23-23-184-226.compute-1.amazonaws.com',
+            'PORT': '5432',
+        },
+        'local': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'elevation',
+            'USER': 'heroku',
+            'PASSWORD': '2#EDptl!',
+            'HOST': '',
+            'PORT': '',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators

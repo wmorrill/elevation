@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from base.models import athlete
 from base.models import activity
+from base.models import month
 from stravalib.client import Client
 from datetime import datetime
 from datetime import timedelta
@@ -22,12 +23,10 @@ def data_scraper(date_start, date_end):
     km_to_miles = 0.621371
     athlete_list = athlete.objects.all() # get list of all athletes
     for each_athlete in athlete_list: # for each athlete
-        print(each_athlete)
         client = Client(access_token=each_athlete.access_token)
         this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
         for each_activity in this_athlete_activities:  # for each activity
             if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
-                print(each_activity)
                 new_activity = activity(
                     id=each_activity.id,
                     athlete_id=athlete.objects.filter(pk=each_activity.athlete.id)[0],
@@ -43,6 +42,23 @@ def data_scraper(date_start, date_end):
                     photos=each_activity.photos,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
                 new_activity.save()
+        cum = 0
+        # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
+        for each_day in range(1,(date_end-date_start).days):
+            this_day = activity.objects.filter(athlete_id = each_athlete).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
+            cum += this_day['daily_sum'] or 0
+            today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
+            if today:
+                for existing_day in today:
+                    existing_day.cum_elev = cum
+                    existing_day.save()
+            else:
+                new_day = month(
+                    athlete_id = each_athlete,
+                    day = each_day,
+                    cum_elev = cum
+                )
+                new_day.save()
 
 def get_athlete_daily_activities(athlete, date_start, date_end):
     daily_dictionary = {}
@@ -54,17 +70,6 @@ def get_athlete_daily_activities(athlete, date_start, date_end):
         # this_day_activities = relevant_activities.objects.filter(start_date_local=date_start+datetime.timedelta(day))
         daily_dictionary[day] = this_day_activities
     return daily_dictionary
-
-def get_cumulative_queryset(athlete, date_start, date_end):
-    before = date_end
-    after = date_start
-    running_sum = activity.objects.filter(athlete_id=athlete).filter(start_date_local__lte=before).filter(start_date_local__gte=after).order_by('start_date_local')
-    cumulative = 0
-    for item in running_sum:
-        cumulative += item.total_elevation_gain
-        item.cumulative_elevation = cumulative
-        item.save()
-    return running_sum
 
 def get_elevation_sum(daily_dictionary):
     daily_elevation_list = {}
@@ -100,9 +105,10 @@ def elevation_chart(before, after):
     this_series = []
     position = 1
     for each_athlete in get_leaderboard():
-        cumulative_set = get_cumulative_queryset(each_athlete, after, before))
+        # cumulative_set = get_cumulative_queryset(each_athlete, after, before)
+        cumulative_set = month.objects.filter(athlete_id = each_athlete)
         this_series.append({'options':{'source': cumulative_set},
-                       'terms':[{str(each_athlete)+'_date':'day'}, {str(each_athlete): 'cumulative_elevation'}]})
+                       'terms':[{str(each_athlete)+'_date':'day'}, {str(each_athlete): 'cum_elev'}]})
         position += 1
     ds = chartit.DataPool(this_series)
 
@@ -138,9 +144,9 @@ def athlete_chart(this_person):
 
     cht = chartit.Chart(
         datasource=ds,
-        series_options=[{'options':{'type': 'column', 'stacking': False, 'xAxis':0, 'yAxis':0},
+        series_options=[{'options':{'type': 'column', 'xAxis': 0, 'yAxis': 0, 'zAxis': 1},
                          'terms':{'day': ['total_elevation_gain']}},
-                        {'options':{'type': 'line', 'stacking': False, 'xAxis':0, 'yAxis':1},
+                        {'options':{'type': 'line', 'xAxis':1, 'yAxis':1},
                          'terms':{'day': ['cumulative_elevation']},
                         }],
         chart_options={'title': {'text': 'Activity Stats'},
