@@ -59,6 +59,8 @@ def data_scraper(date_start, date_end):
                     cum_elev = cum
                 )
                 new_day.save()
+        if each_day < 31:
+            month.objects.filter(day=31).delete()
 
 def get_athlete_daily_activities(athlete, date_start, date_end):
     daily_dictionary = {}
