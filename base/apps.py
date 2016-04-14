@@ -44,7 +44,7 @@ def data_scraper(date_start, date_end):
                 new_activity.save()
         cum = 0
         # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
-        for each_day in range(1,(date_end-date_start).days):
+        for each_day in range(1,(date_end-date_start).days+1):
             this_day = activity.objects.filter(athlete_id = each_athlete).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
             cum += this_day['daily_sum'] or 0
             today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
