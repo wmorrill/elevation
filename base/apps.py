@@ -8,6 +8,11 @@ from datetime import timedelta
 import chartit
 from django.db.models import Sum
 
+this_month = datetime.today().month
+this_year = datetime.today().year
+before = datetime(this_year, this_month+1, 1)
+after = datetime(this_year, this_month, 1)
+
 class BaseConfig(AppConfig):
     name = 'base'
 
@@ -69,8 +74,15 @@ def data_scraper(date_start, date_end):
                     cum_elev = cum
                 )
                 new_day.save()
-        if each_day < 31:
-            month.objects.filter(day=31).delete()
+        all_athlete_activities = activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start).order_by('start_date_local')
+        cum = 0
+        for every_activity in all_athlete_activities:
+            cum += every_activity.total_elevation_gain
+            every_activity.cumulative_elevation = cum
+            every_activity.save()
+    if each_day < 31:
+        month.objects.filter(day=31).delete()
+
 
 def get_athlete_daily_activities(athlete, date_start, date_end):
     daily_dictionary = {}
@@ -150,19 +162,35 @@ def athlete_chart(this_person):
 
     ds = chartit.DataPool(
        series=
-        [{'options': {'source': activity.objects.filter(athlete_id = this_person)},
-          'terms': [{'day':'start_date_local'}, 'total_elevation_gain', 'cumulative_elevation']}]
+        [{'options': {'source': activity.objects.filter(athlete_id=this_person).filter(start_date_local__lte=before).filter(start_date_local__gte=after)},
+          'terms': [{'day':'day'}, 'total_elevation_gain', 'cumulative_elevation']}]
     )
 
     cht = chartit.Chart(
         datasource=ds,
-        series_options=[{'options':{'type': 'column', 'xAxis': 0, 'yAxis': 0, 'zAxis': 1},
+        series_options=[{'options':{'type': 'column', 'xAxis': 0, 'yAxis': 0, 'zAxis': 0},
                          'terms':{'day': ['total_elevation_gain']}},
-                        {'options':{'type': 'line', 'xAxis':1, 'yAxis':1},
+                        {'options':{'type': 'line', 'xAxis': 1, 'yAxis':1},
                          'terms':{'day': ['cumulative_elevation']},
                         }],
-        chart_options={'title': {'text': 'Activity Stats'},
-                       'xAxis': {'tickInterval':1, 'labels': {'rotation': -45}, 'title': {'text': 'date'}}}
+        chart_options={'title': {'text': 'Activity Stats'}}
+    )
+
+    return cht
+
+def activity_split_chart(before, after):
+    ds = chartit.DataPool(
+       series=
+        [{'options': {'source': activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('total_elevation_gain'))},
+          'terms': ['type', 'total_elevation_gain__sum']}]
+    )
+
+    cht = chartit.Chart(
+        datasource=ds,
+        series_options=[{'options':{'type': 'pie'},
+                         'terms':{'type': ['total_elevation_gain__sum']}
+                        }],
+        chart_options={'title': {'text': 'Activity Breakdown'}}
     )
 
     return cht

@@ -7,6 +7,11 @@ from base.models import activity
 from base.models import data_update
 from base.apps import *
 
+this_month = datetime.today().month
+this_year = datetime.today().year
+before = datetime(this_year, this_month+1, 1)
+after = datetime(this_year, this_month, 1)
+
 def index(request):
     # check timestamp of last update
     if data_update.objects.all():
@@ -19,29 +24,22 @@ def index(request):
         new_stamp = data_update(time_stamp=datetime.utcnow())
         new_stamp.save()
         # go through each user and update their activities for this month
-        this_month = datetime.today().month
-        this_year = datetime.today().year
-        before = datetime(this_year, this_month+1, 1)
-        after = datetime(this_year, this_month, 1)
         data_scraper(after, before)
     else:
         print("updated in the last 15 mins at %s" % str(last_check.time_stamp))
 
-    this_month = datetime.today().month
-    this_year = datetime.today().year
-    before = datetime(this_year, this_month+1, 1)
-    after = datetime(this_year, this_month, 1)
     leaderboard = get_leaderboard()
     elev_chart = elevation_chart(before, after)
+    # pie_chart = activity_split_chart(before, after)
 
-    total_distance = activity.objects.all().aggregate(distance_sum=Sum('distance'))['distance_sum']
-    total_elevation = activity.objects.all().aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
-    total_moving_time = activity.objects.all().aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
+    total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
+    total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
+    total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
     energy_wasted = 0.07 * total_elevation / (total_moving_time.days * 24 + total_moving_time.seconds / 3600)
 
     return render(request, 'index.html', {'sample_chart':elev_chart, 'leaderboard':leaderboard,
-                                          'energy_wasted':int(energy_wasted), 'energy_saved':int(total_distance),
-                                          'total_elevation':int(total_elevation)})
+                                          'energy_wasted':int(energy_wasted*1000), 'energy_saved':int(total_distance*1000),
+                                          'total_elevation':int(total_elevation)})#, 'pie_chart':pie_chart})
 
 def individual(request):
     leaderboard = get_leaderboard()
@@ -49,7 +47,7 @@ def individual(request):
     print(athlete_id)
     this_person = athlete.objects.filter(id = athlete_id)
     chart = athlete_chart(this_person)
-    activity_list = activity.objects.filter(athlete_id = this_person).order_by('start_date_local')
+    activity_list = activity.objects.filter(athlete_id = this_person).filter(start_date_local__lte=before).filter(start_date_local__gte=after).order_by('start_date_local')
     return render(request, 'individual.html', {'this_person': this_person, 'sample_chart': chart, 'activity_list':activity_list, 'leaderboard':leaderboard})
 
 def auth(request):
