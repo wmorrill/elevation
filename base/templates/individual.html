@@ -31,7 +31,7 @@
         {% for item in activity_list %}
         <tr>
             <td> {{ item.day }}</td>
-            <td> <a href="https://www.strava.com/activities/{{ item.id }}">{{ item.name }}</a></td>
+            <td> <a href="https://www.strava.com/activities/{{ item.id }}" target="_newtab">{{ item.name }}</a></td>
             <td> {{ item.total_elevation_gain|floatformat:2 }}</td>
             <td> {{ item.cumulative_elevation|floatformat:2 }}</td>
             <td> {{ item.distance|floatformat:2 }}</td>

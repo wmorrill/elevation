@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'base',
     'stravalib',
     'chartit',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE_CLASSES = [

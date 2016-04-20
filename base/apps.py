@@ -25,6 +25,8 @@ def data_scraper(date_start, date_end):
     for each_athlete in athlete_list: # for each athlete
         client = Client(access_token=each_athlete.access_token)
         this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
+        relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
+        # print(relevant_existing_activities)
         for each_activity in this_athlete_activities:  # for each activity
             if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
                 new_activity = activity(
@@ -42,6 +44,14 @@ def data_scraper(date_start, date_end):
                     photos=each_activity.photos,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
                 new_activity.save()
+            else:
+                try:
+                    relevant_existing_activities.remove(each_activity.id)
+                except ValueError:
+                    pass  # print("item %d in black hole" % each_activity.id)
+        for extra_activity in relevant_existing_activities:
+            print('removing item %d from database since it doesnt exist on strava'%extra_activity)
+            activity.objects.filter(id=extra_activity).delete()
         cum = 0
         # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
         for each_day in range(1,(date_end-date_start).days+1):

@@ -33,7 +33,15 @@ def index(request):
     after = datetime(this_year, this_month, 1)
     leaderboard = get_leaderboard()
     elev_chart = elevation_chart(before, after)
-    return render(request, 'index.html', {'sample_chart':elev_chart, 'leaderboard':leaderboard})
+
+    total_distance = activity.objects.all().aggregate(distance_sum=Sum('distance'))['distance_sum']
+    total_elevation = activity.objects.all().aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
+    total_moving_time = activity.objects.all().aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
+    energy_wasted = 0.07 * total_elevation / (total_moving_time.days * 24 + total_moving_time.seconds / 3600)
+
+    return render(request, 'index.html', {'sample_chart':elev_chart, 'leaderboard':leaderboard,
+                                          'energy_wasted':int(energy_wasted), 'energy_saved':int(total_distance),
+                                          'total_elevation':int(total_elevation)})
 
 def individual(request):
     leaderboard = get_leaderboard()
