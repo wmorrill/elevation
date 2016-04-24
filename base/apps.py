@@ -1,16 +1,18 @@
 from django.apps import AppConfig
 from base.models import athlete
 from base.models import activity
+from base.models import activity_type
 from base.models import month
 from stravalib.client import Client
 from datetime import datetime
 from datetime import timedelta
 import chartit
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 this_month = datetime.today().month
 this_year = datetime.today().year
-before = datetime(this_year, this_month+1, 1)
+#before = datetime(this_year, this_month+1, 1)
+before = datetime.today()
 after = datetime(this_year, this_month, 1)
 
 class BaseConfig(AppConfig):
@@ -80,8 +82,35 @@ def data_scraper(date_start, date_end):
             cum += every_activity.total_elevation_gain
             every_activity.cumulative_elevation = cum
             every_activity.save()
-    if each_day < 31:
-        month.objects.filter(day=31).delete()
+        month.objects.filter(day__gte=each_day+1).delete()
+
+    # update the info for the types pie chart
+    # find all the types
+    types = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').distinct()
+    elevation_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('total_elevation_gain'))
+    distance_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('distance'))
+    quantity_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Count('id'))
+    # for each type
+    for each_value in types:
+        each_type = each_value['type']
+        # check to see if it already exists
+        this_type = activity_type.objects.filter(pk=each_type)[0]
+        if not this_type:
+            new_type = activity_type(type = each_type)
+            new_type.save()
+    for each_item in elevation_by_type:
+            this_type = activity_type.objects.filter(pk=each_item['type'])[0]
+            this_type.elevation = each_item['total_elevation_gain__sum']
+            this_type.save()
+    for each_item in distance_by_type:
+            this_type = activity_type.objects.filter(pk=each_item['type'])[0]
+            this_type.distance = each_item['distance__sum']
+            this_type.save()
+    for each_item in quantity_by_type:
+            this_type = activity_type.objects.filter(pk=each_item['type'])[0]
+            this_type.quantity = each_item['id__count']
+            this_type.save()
+
 
 
 def get_athlete_daily_activities(athlete, date_start, date_end):
@@ -134,6 +163,9 @@ def elevation_chart(before, after):
         this_series.append({'options':{'source': cumulative_set},
                        'terms':[{str(each_athlete)+'_date':'day'}, {str(each_athlete): 'cum_elev'}]})
         position += 1
+        #add pie chart to line chart
+        this_series.append({'options':{'source': activity_type.objects.all()},
+                            'terms':['type', 'elevation']})
     ds = chartit.DataPool(this_series)
 
     athlete_list_date = [str(x)+'_date' for x in get_leaderboard()]
@@ -141,12 +173,14 @@ def elevation_chart(before, after):
     term_dict = {}
     for key, value in enumerate(athlete_list_date):
         term_dict[value] = [athlete_list_elevation[key],]
-    chart_series = [{'options':{'type': 'line', 'stacking': False}, 'terms':term_dict}]
-
+    chart_series = [{'options':{'type': 'spline', 'stacking': False}, 'terms':term_dict}]
+    # adding pie chart to line chart
+    chart_series.append({'options':{'type': 'pie', 'center': [100, 80], 'size':200}, 'terms':{'type': ['elevation']}})
+    title = 'Elevation Summary - ' + datetime.today().strftime("%B")
     cht = chartit.Chart(
         datasource=ds,
         series_options=chart_series,
-        chart_options={'title': {'text': 'Elevation Summary'},
+        chart_options={'title': {'text': title},
                        'xAxis': {'title': {'text': 'Day'}},
                        'yAxis': {'title': {'text': 'Elevation (feet)'}},
                        'legend': {'layout': 'vertical',
@@ -170,7 +204,7 @@ def athlete_chart(this_person):
         datasource=ds,
         series_options=[{'options':{'type': 'column', 'xAxis': 0, 'yAxis': 0, 'zAxis': 0},
                          'terms':{'day': ['total_elevation_gain']}},
-                        {'options':{'type': 'line', 'xAxis': 1, 'yAxis':1},
+                        {'options':{'type': 'spline', 'xAxis': 1, 'yAxis':1},
                          'terms':{'day': ['cumulative_elevation']},
                         }],
         chart_options={'title': {'text': 'Activity Stats'}}
@@ -181,14 +215,14 @@ def athlete_chart(this_person):
 def activity_split_chart(before, after):
     ds = chartit.DataPool(
        series=
-        [{'options': {'source': activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('total_elevation_gain'))},
-          'terms': ['type', 'total_elevation_gain__sum']}]
+        [{'options': {'source': activity_type.objects.all()},
+          'terms': ['type', 'elevation']}]
     )
 
     cht = chartit.Chart(
         datasource=ds,
         series_options=[{'options':{'type': 'pie'},
-                         'terms':{'type': ['total_elevation_gain__sum']}
+                         'terms':{'type': ['elevation']}
                         }],
         chart_options={'title': {'text': 'Activity Breakdown'}}
     )

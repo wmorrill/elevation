@@ -5,11 +5,13 @@ from datetime import timedelta
 from base.models import athlete
 from base.models import activity
 from base.models import data_update
+from base.models import activity_type
 from base.apps import *
 
 this_month = datetime.today().month
 this_year = datetime.today().year
-before = datetime(this_year, this_month+1, 1)
+# before = datetime(this_year, this_month+1, 1)
+before = datetime.today()
 after = datetime(this_year, this_month, 1)
 
 def index(request):
@@ -30,16 +32,20 @@ def index(request):
 
     leaderboard = get_leaderboard()
     elev_chart = elevation_chart(before, after)
-    # pie_chart = activity_split_chart(before, after)
+    pie_chart = activity_split_chart(before, after)
 
     total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
     total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
     total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
-    energy_wasted = 0.07 * total_elevation / (total_moving_time.days * 24 + total_moving_time.seconds / 3600)
+    energy_wasted = 0.07 * total_elevation / (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 1000
+    ghg_prevented = 0.419 * total_distance
+    coal_prevented = 0.45 * total_distance
+    gasoline_prevented = 0.047 * total_distance
 
-    return render(request, 'index.html', {'sample_chart':elev_chart, 'leaderboard':leaderboard,
-                                          'energy_wasted':int(energy_wasted*1000), 'energy_saved':int(total_distance*1000),
-                                          'total_elevation':int(total_elevation)})#, 'pie_chart':pie_chart})
+    return render(request, 'index.html', {'charts':[elev_chart, pie_chart], 'leaderboard':leaderboard,
+                                          'energy_wasted':int(energy_wasted*1000), 'ghg_prevented':int(ghg_prevented),
+                                          'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
+                                          'gasoline_prevented':gasoline_prevented})
 
 def individual(request):
     leaderboard = get_leaderboard()

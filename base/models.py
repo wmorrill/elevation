@@ -48,3 +48,9 @@ class month(models.Model):
     day = models.IntegerField()
     cum_elev = models.FloatField()
 
+class activity_type(models.Model):
+    type = models.CharField(primary_key=True, max_length=30)
+    quantity = models.IntegerField(null=True, blank=True)
+    elevation = models.FloatField(null=True, blank=True)
+    distance = models.FloatField(null=True, blank=True)
+

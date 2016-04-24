@@ -11,8 +11,8 @@
 </div>
 <div class="container">
     {% load chartit %}
-    <div style="height:500px" id="container">{{ sample_chart|load_charts:"container" }} chart should be rendered here</div>
-  <hr>
+    <div style="height:500px" id="container">{{ charts|load_charts:"container,pie_chart" }} chart should be rendered here</div>
+
   <div class="row">
     <button type="button", value="Remove All" onclick="<script>
     $(highcharts-0.series).each(function(){
@@ -40,14 +40,15 @@
     </div>
     <div id = "column2" style="float:center; margin:0; width:10%;"></div>
     <div id = "column3" style="float:right; margin:0; width:50%;">
-
-        <div id="pie_chart">pie chart should be here</div>
-
-        <h2>{{ total_elevation|intword }} Elevation (ft)</h2>
-        <h2>{{ energy_saved|intword }} Energy Saved (watts)</h2>
-        (based on distance with no elevation, ~1kWh/mile)
-        <h2>{{ energy_wasted|intcomma }} Energy Wasted (watts)</h2>
-        (uphill energy spent, ~0.07Wh per ft/hr)
+        <h2><span class="glyphicon glyphicon-circle-arrow-up"></span><b> {{ total_elevation|intword|intcomma }}</b> total feet of elevation</h2>
+        <h2><span class="glyphicon glyphicon-flash"></span><b> {{ energy_wasted|intword|intcomma }}</b> kWh wasted (uphill expenditure)</h2>
+        <!--(uphill energy spent, ~0.07Wh per ft/hr)-->
+        <h2><span class="glyphicon glyphicon-globe"></span><b> {{ ghg_prevented|intword|intcomma }}</b> kg GHG prevented</h2>
+        <h2><span class="glyphicon glyphicon-fire"></span><b> {{ coal_prevented|intword|intcomma }}</b> lbs of coal not burned</h2>
+        <h2><span class="glyphicon glyphicon-tint"></span><b> {{ gasoline_prevented|intword|intcomma }}</b> gal of gasoline not burned</h2>
+        <!--(assuming 21.2mpg)-->
+        <!-- 0.689551 kg CO2 saved per kwh according to
+        https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator-->
      </div>
 </div>
 
