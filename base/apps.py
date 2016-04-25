@@ -3,6 +3,7 @@ from base.models import athlete
 from base.models import activity
 from base.models import activity_type
 from base.models import month
+from base.models import picture
 from stravalib.client import Client
 from datetime import datetime
 from datetime import timedelta
@@ -23,6 +24,24 @@ class stravalib_app(AppConfig):
 
 class chartit_app(AppConfig):
     name = 'chartit'
+
+def get_activity_photos(activity_id = None):
+    client = Client()
+    if activity_id:
+        photos = client.get_activity_photos(activity_id)
+    else:
+        for each_activity in activity.objects.all():
+            if not picture.objects.filter(activity_id=each_activity):
+                photos = client.get_activity_photos(each_activity.id)
+            else:
+                photos = []
+    for each_photo in photos:
+        if not picture.objects.filter(activity_id=activity(pk=each_photo.activity_id)):
+            for each_url in each_photo.urls:
+                new_photo = picture(id=each_photo.id,
+                                    url=each_url,
+                                    activity_id=activity(pk=each_photo.activity_id))
+                new_photo.save()
 
 def data_scraper(date_start, date_end):
     meters_to_miles = 0.000621371
@@ -51,6 +70,7 @@ def data_scraper(date_start, date_end):
                     photos=each_activity.photos,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
                 new_activity.save()
+                get_activity_photos(each_activity.id)
             else:
                 try:
                     relevant_existing_activities.remove(each_activity.id)
@@ -82,7 +102,7 @@ def data_scraper(date_start, date_end):
             cum += every_activity.total_elevation_gain
             every_activity.cumulative_elevation = cum
             every_activity.save()
-        month.objects.filter(day__gte=each_day+1).delete()
+        month.objects.filter(day__gt=each_day+1).delete()
 
     # update the info for the types pie chart
     # find all the types
@@ -137,7 +157,10 @@ def get_elevation_sum(daily_dictionary):
         daily_elevation_sum[day+1] = total_elevation
     return daily_elevation_list, daily_elevation_sum
 
-def get_leaderboard():
+def get_leaderboard(activity_type = None):
+    if activity_type:
+        query = athlete.objects.filter(activity__type=activity_type).annotate(elevation=Sum('activity__total_elevation_gain')).order_by('-elevation')
+        return query
     # return a queryset of athletes in order of elevation total
     return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).order_by('-elevation')
 

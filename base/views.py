@@ -14,6 +14,18 @@ this_year = datetime.today().year
 before = datetime.today()
 after = datetime(this_year, this_month, 1)
 
+def faq(request):
+    return render(request, 'faq.html', {'leaderboard':get_leaderboard()})
+
+def running(request):
+    return render(request, 'type_leaderboard.html', {})
+
+def riding(request):
+    return render(request, 'type_leaderboard.html', {})
+
+def hiking(request):
+    return render(request, 'type_leaderboard.html', {})
+
 def index(request):
     # check timestamp of last update
     if data_update.objects.all():
@@ -45,7 +57,8 @@ def index(request):
     return render(request, 'index.html', {'charts':[elev_chart, pie_chart], 'leaderboard':leaderboard,
                                           'energy_wasted':int(energy_wasted*1000), 'ghg_prevented':int(ghg_prevented),
                                           'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
-                                          'gasoline_prevented':gasoline_prevented})
+                                          'gasoline_prevented':gasoline_prevented, 'hike_leaderboard':get_leaderboard('Hike'),
+                                          'ride_leaderboard':get_leaderboard('Ride'), 'run_leaderboard':get_leaderboard('Run')})
 
 def individual(request):
     leaderboard = get_leaderboard()
@@ -80,12 +93,9 @@ def auth_success(request):
     return render(request, 'auth_success.html', {'leaderboard':get_leaderboard(), 'result':result})
 
 def force_update(request):
+    get_activity_photos()
     new_stamp = data_update(time_stamp=datetime.utcnow())
     new_stamp.save()
     # go through each user and update their activities for this month
-    this_month = datetime.today().month
-    this_year = datetime.today().year
-    before = datetime(this_year, this_month+1, 1)
-    after = datetime(this_year, this_month, 1)
     data_scraper(after, before)
     return render(request, 'force_update.html')

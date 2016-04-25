@@ -135,11 +135,48 @@
     .CSSTableGenerator tr:first-child td:last-child{
         border-width:0px 0px 1px 1px;
     }
+    ul.tab {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
+
+    /* Float the list items side by side */
+    ul.tab li {float: left;}
+
+    /* Style the links inside the list items */
+    ul.tab li a {
+        display: inline-block;
+        color: black;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    /* Change background color of links on hover */
+    ul.tab li a:hover {background-color: #ddd;}
+
+    /* Create an active/current tablink class */
+    ul.tab li a:focus, .active {background-color: #ccc;}
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+    }
 
 
   </style>
 </head>
 <body>
+{% load humanize %}
 <nav class="navbar navbar-default navbar-static-top navbar-inverse">
   <div class="container">
     <ul class="nav navbar-nav">
@@ -150,7 +187,7 @@
         <a href="ind_data" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-user"></span> Individual Data <span class="caret"></span></a>
             <ul class="dropdown-menu scrollable-menu" role="menu">
             {% for each_athlete in leaderboard %}
-                <li><a href="/individual/?id={{ each_athlete.id }}">{{ each_athlete.firstname }} {{ each_athlete.lastname }}</a></li>
+                <li><a href="/individual/?id={{ each_athlete.id }}">{{ forloop.counter|ordinal }}: {{ each_athlete.firstname }} {{ each_athlete.lastname }}</a></li>
             {% endfor %}
             </ul>
       </li>
@@ -163,11 +200,18 @@
             <li><a href="/">Meta Efficiency (Time Efficiency vs Distance Efficiency)</a></li>
             <li class="divider"></li>
             <li><a href="/">Total Elevation</a></li>
+
           </ul>
       </li>
-      <li><a href="/"><span class="glyphicon glyphicon-picture"></span> Pictures</a></li>
-      <li><a href="/"><span class="glyphicon glyphicon-question-sign"></span> FAQ</a></li>
-      <li><a href="https://teslamotors.slack.com/messages/#bike/"><span class="glyphicon glyphicon-comment"></span> Slack</a></li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-option-vertical"></span> Extras <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/pictures"><span class="glyphicon glyphicon-picture"></span> Pictures</a></li>
+            <li><a href="/raffle"><span class="glyphicon glyphicon-gift"></span> Raffle Details</a></li>
+            <li><a href="https://teslamotors.slack.com/messages/#bike/"><span class="glyphicon glyphicon-comment"></span> Slack</a></li>
+          </ul>
+      </li>
+      <li><a href="/faq"><span class="glyphicon glyphicon-question-sign"></span> FAQ</a></li>
       <li><a href="/auth"><span class="glyphicon glyphicon-plus"></span> Sign Up!</a></li>
     </ul>
   </div>

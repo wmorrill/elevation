@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load humanize %}
-
 {% block content %}
 
 <div class="jumbotron text-center">
@@ -12,36 +11,110 @@
 <div class="container">
     {% load chartit %}
     <div style="height:500px" id="container">{{ charts|load_charts:"container,pie_chart" }} chart should be rendered here</div>
+    <div id="column1" style="float:left; margin:0; width:35%;">
+        <ul class="tab">
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'all')">All</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'run')">Run</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'ride')">Ride</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'hike')">Hike</a></li>
+        </ul>
 
-  <div class="row">
-    <button type="button", value="Remove All" onclick="<script>
-    $(highcharts-0.series).each(function(){
-        //this.hide();
-        this.setVisible(false, false);
-    });
-    chart.redraw();
-    </script>">Remove All</button>
-  </div> <!-- row -->
-    <div id="column1" style="float:left; margin:0; width:40%;">
-    <table class="CSSTableGenerator">
-        <tr>
-            <th>Rank </th>
-            <th>Name </th>
-            <th>Elevation (ft) </th>
-        </tr>
-        {% for item in leaderboard %}
-        <tr>
-            <td> {{ forloop.counter|ordinal }}</td>
-            <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
-            <td> {{ item.elevation|floatformat:2 }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <div id="all" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="ride" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in ride_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="run" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in run_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="hike" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in hike_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <script>
+        function openLeaderboard(evt, typeName) {
+            // Declare all variables
+            var i, tabcontent, tablinks;
+
+            // Get all elements with class="tabcontent" and hide them
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tabcontent.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the link that opened the tab
+            document.getElementById(typeName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }</script>
+
+        <script>
+        var mybtn = document.getElementsByClassName("tablinks")[0];
+        mybtn.click();
+        </script>
+
     </div>
-    <div id = "column2" style="float:center; margin:0; width:10%;"></div>
-    <div id = "column3" style="float:right; margin:0; width:50%;">
+    <div id = "column2" style="float:center; margin:0; width:1%;"></div>
+    <div id = "column3" style="float:right; margin:0; width:64%;">
         <h2><span class="glyphicon glyphicon-circle-arrow-up"></span><b> {{ total_elevation|intword|intcomma }}</b> total feet of elevation</h2>
-        <h2><span class="glyphicon glyphicon-flash"></span><b> {{ energy_wasted|intword|intcomma }}</b> kWh wasted (uphill expenditure)</h2>
+        <h2><span class="glyphicon glyphicon-flash"></span><b> {{ energy_wasted|intword|intcomma }}</b> kWh wasted going uphill</h2>
         <!--(uphill energy spent, ~0.07Wh per ft/hr)-->
         <h2><span class="glyphicon glyphicon-globe"></span><b> {{ ghg_prevented|intword|intcomma }}</b> kg GHG prevented</h2>
         <h2><span class="glyphicon glyphicon-fire"></span><b> {{ coal_prevented|intword|intcomma }}</b> lbs of coal not burned</h2>
