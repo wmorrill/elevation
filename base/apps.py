@@ -25,10 +25,16 @@ class stravalib_app(AppConfig):
 class chartit_app(AppConfig):
     name = 'chartit'
 
-def get_activity_photos(activity_id = None):
-    client = Client()
-    if activity_id:
-        photos = client.get_activity_photos(activity_id)
+def get_activity_photos(passed_client=None, passed_activity_id=None):
+    if passed_client:
+        client = passed_client
+    else:
+        client = Client()
+    if passed_activity_id:
+        if not picture.objects.filter(activity_id=passed_activity_id):
+            photos = client.get_activity_photos(passed_activity_id)
+        else:
+            photos = []
     else:
         for each_activity in activity.objects.all():
             if not picture.objects.filter(activity_id=each_activity):
@@ -36,11 +42,10 @@ def get_activity_photos(activity_id = None):
             else:
                 photos = []
     for each_photo in photos:
+        print(each_photo)
         if not picture.objects.filter(activity_id=activity(pk=each_photo.activity_id)):
             for each_url in each_photo.urls:
-                new_photo = picture(id=each_photo.id,
-                                    url=each_url,
-                                    activity_id=activity(pk=each_photo.activity_id))
+                new_photo = picture(url=each_url, activity_id=activity(pk=each_photo.activity_id))
                 new_photo.save()
 
 def data_scraper(date_start, date_end):
@@ -70,8 +75,9 @@ def data_scraper(date_start, date_end):
                     photos=each_activity.photos,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
                 new_activity.save()
-                get_activity_photos(each_activity.id)
+                get_activity_photos(client, each_activity.id)
             else:
+                get_activity_photos(client, each_activity.id)
                 try:
                     relevant_existing_activities.remove(each_activity.id)
                 except ValueError:

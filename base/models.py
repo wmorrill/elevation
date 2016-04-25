@@ -9,6 +9,7 @@ class data_update(models.Model):
 
 class club(models.Model):
     id = models.BigIntegerField(primary_key=True)
+    name = models.CharField(max_length=140)
 
 class athlete(models.Model):
     id = models.BigIntegerField(primary_key=True)

@@ -7,6 +7,7 @@ from base.models import activity
 from base.models import data_update
 from base.models import activity_type
 from base.apps import *
+from threading import Thread
 
 this_month = datetime.today().month
 this_year = datetime.today().year
@@ -38,7 +39,10 @@ def index(request):
         new_stamp = data_update(time_stamp=datetime.utcnow())
         new_stamp.save()
         # go through each user and update their activities for this month
-        data_scraper(after, before)
+        t = Thread(target=data_scraper, args=[after, before])
+        t.daemon = True
+        t.start()
+        # data_scraper(after, before)
     else:
         print("updated in the last 15 mins at %s" % str(last_check.time_stamp))
 
@@ -93,9 +97,12 @@ def auth_success(request):
     return render(request, 'auth_success.html', {'leaderboard':get_leaderboard(), 'result':result})
 
 def force_update(request):
-    get_activity_photos()
+    #get_activity_photos()
     new_stamp = data_update(time_stamp=datetime.utcnow())
     new_stamp.save()
     # go through each user and update their activities for this month
-    data_scraper(after, before)
+    t = Thread(target=data_scraper, args=[after, before])
+    t.daemon = True
+    t.start()
+    # data_scraper(after, before)
     return render(request, 'force_update.html')
