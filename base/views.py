@@ -5,15 +5,17 @@ from datetime import timedelta
 from base.models import athlete
 from base.models import activity
 from base.models import data_update
-from base.models import activity_type
+from stravalib.model import ActivityPhoto
 from base.apps import *
 from threading import Thread
+import requests.packages.urllib3
+requests.packages.urllib3.disable_warnings()
 
 this_month = datetime.today().month
 this_year = datetime.today().year
 # before = datetime(this_year, this_month+1, 1)
-before = datetime.today()
-after = datetime(this_year, this_month, 1)
+before = datetime.now()
+after = datetime(this_year, this_month, 1, tzinfo=before.tzinfo)
 
 def faq(request):
     return render(request, 'faq.html', {'leaderboard':get_leaderboard()})
@@ -91,6 +93,7 @@ def auth_success(request):
             access_token = token
         )
         new_athlete.save()
+        data_scraper(after, before, client.get_athlete().id)
         result = 'added'
     else:
         result = 'already exists'
@@ -106,3 +109,28 @@ def force_update(request):
     t.start()
     # data_scraper(after, before)
     return render(request, 'force_update.html')
+
+def test(request):
+    my_id = 547220628
+    client = Client(access_token='12363c99d46a329f5e810e3fb7135bc45caaa7c7')
+    photos = client.get_activity_photos(my_id)
+
+    # this_activity = client.get_activity(547220628)
+    print("###############DEBUG##############")
+    # print(this_activity_photos)
+    # for photo in this_activity_photos:
+    #     print(photo.urls)
+    print(photos)
+    # for item in this_activity:
+    #     print('made it here')
+    #     print(item)
+    #     print(item.calories)
+    #     print(item.photos)
+    print("##################################")
+    return render(request, 'test.html', {'result1': 1, 'result2': 2})
+
+def leaderboard(request):
+    return render(request, 'leaderboard.html', {'leaderboard':get_leaderboard(),
+                                          'hike_leaderboard':get_leaderboard('Hike'),
+                                          'ride_leaderboard':get_leaderboard('Ride'),
+                                          'run_leaderboard':get_leaderboard('Run')})

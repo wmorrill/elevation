@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load humanize %}
+{% block content %}
+
+
+        <ul class="tab">
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'all')">All</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'run')">Run</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'ride')">Ride</a></li>
+            <li><a type="button" class="tablinks" onclick="openLeaderboard(event, 'hike')">Hike</a></li>
+        </ul>
+
+        <div id="all" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="ride" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in ride_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="run" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in run_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="hike" class="tabcontent">
+            <table class="CSSTableGenerator">
+                <tr>
+                    <th>Rank </th>
+                    <th>Name </th>
+                    <th>Elevation (ft) </th>
+                </tr>
+                {% for item in hike_leaderboard %}
+                <tr>
+                    <td> {{ forloop.counter|ordinal }}</td>
+                    <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
+                    <td> {{ item.elevation|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <script>
+        function openLeaderboard(evt, typeName) {
+            // Declare all variables
+            var i, tabcontent, tablinks;
+
+            // Get all elements with class="tabcontent" and hide them
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tabcontent.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the link that opened the tab
+            document.getElementById(typeName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }</script>
+
+        <script>
+        var mybtn = document.getElementsByClassName("tablinks")[0];
+        mybtn.click();
+        </script>
+
+    </div>
+
+
+
+{% endblock %}

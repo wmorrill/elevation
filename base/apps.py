@@ -13,8 +13,8 @@ from django.db.models import Sum, Count
 this_month = datetime.today().month
 this_year = datetime.today().year
 #before = datetime(this_year, this_month+1, 1)
-before = datetime.today()
-after = datetime(this_year, this_month, 1)
+before = datetime.now()
+after = datetime(this_year, this_month, 1, tzinfo=before.tzinfo)
 
 class BaseConfig(AppConfig):
     name = 'base'
@@ -26,6 +26,7 @@ class chartit_app(AppConfig):
     name = 'chartit'
 
 def get_activity_photos(passed_client=None, passed_activity_id=None):
+    return
     if passed_client:
         client = passed_client
     else:
@@ -33,14 +34,12 @@ def get_activity_photos(passed_client=None, passed_activity_id=None):
     if passed_activity_id:
         if not picture.objects.filter(activity_id=passed_activity_id):
             photos = client.get_activity_photos(passed_activity_id)
-        else:
-            photos = []
     else:
         for each_activity in activity.objects.all():
             if not picture.objects.filter(activity_id=each_activity):
                 photos = client.get_activity_photos(each_activity.id)
-            else:
-                photos = []
+    photos = list(photos)
+    print(photos)
     for each_photo in photos:
         print(each_photo)
         if not picture.objects.filter(activity_id=activity(pk=each_photo.activity_id)):
@@ -48,16 +47,20 @@ def get_activity_photos(passed_client=None, passed_activity_id=None):
                 new_photo = picture(url=each_url, activity_id=activity(pk=each_photo.activity_id))
                 new_photo.save()
 
-def data_scraper(date_start, date_end):
+def data_scraper(date_start, date_end, athletes=None):
     meters_to_miles = 0.000621371
     meters_to_feet = 3.28084
     km_to_miles = 0.621371
-    athlete_list = athlete.objects.all() # get list of all athletes
+    if athletes:
+        athlete_list = athlete.objects.filter(id=athletes)
+    else:
+        athlete_list = athlete.objects.all() # get list of all athletes
     for each_athlete in athlete_list: # for each athlete
         client = Client(access_token=each_athlete.access_token)
         this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
         relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
         # print(relevant_existing_activities)
+        print(each_athlete, this_athlete_activities)
         for each_activity in this_athlete_activities:  # for each activity
             if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
                 new_activity = activity(
@@ -72,7 +75,6 @@ def data_scraper(date_start, date_end):
                     start_date_local=each_activity.start_date_local,
                     average_speed=km_to_miles*each_activity.average_speed,
                     calories=each_activity.calories,
-                    photos=each_activity.photos,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
                 new_activity.save()
                 get_activity_photos(client, each_activity.id)
@@ -120,7 +122,7 @@ def data_scraper(date_start, date_end):
     for each_value in types:
         each_type = each_value['type']
         # check to see if it already exists
-        this_type = activity_type.objects.filter(pk=each_type)[0]
+        this_type = activity_type.objects.filter(type=each_type)
         if not this_type:
             new_type = activity_type(type = each_type)
             new_type.save()
@@ -136,7 +138,8 @@ def data_scraper(date_start, date_end):
             this_type = activity_type.objects.filter(pk=each_item['type'])[0]
             this_type.quantity = each_item['id__count']
             this_type.save()
-
+    junk_types = activity_type.objects.filter(quantity=0)
+    junk_types.delete()
 
 
 def get_athlete_daily_activities(athlete, date_start, date_end):
@@ -165,10 +168,10 @@ def get_elevation_sum(daily_dictionary):
 
 def get_leaderboard(activity_type = None):
     if activity_type:
-        query = athlete.objects.filter(activity__type=activity_type).annotate(elevation=Sum('activity__total_elevation_gain')).order_by('-elevation')
+        query = athlete.objects.filter(activity__type=activity_type).annotate(elevation=Sum('activity__total_elevation_gain')).filter(elevation__gt=0).order_by('-elevation')
         return query
     # return a queryset of athletes in order of elevation total
-    return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).order_by('-elevation')
+    return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).filter(elevation__gt=0).order_by('-elevation')
 
 def elev_per_day(activity_set, before, after):
     date_start = after
@@ -189,8 +192,9 @@ def elevation_chart(before, after):
     for each_athlete in get_leaderboard():
         # cumulative_set = get_cumulative_queryset(each_athlete, after, before)
         cumulative_set = month.objects.filter(athlete_id = each_athlete)
-        this_series.append({'options':{'source': cumulative_set},
+        this_series.append({'options':{'source': cumulative_set, 'legendIndex': position},
                        'terms':[{str(each_athlete)+'_date':'day'}, {str(each_athlete): 'cum_elev'}]})
+        # print(each_athlete, position)
         position += 1
         #add pie chart to line chart
         this_series.append({'options':{'source': activity_type.objects.all()},
@@ -202,9 +206,9 @@ def elevation_chart(before, after):
     term_dict = {}
     for key, value in enumerate(athlete_list_date):
         term_dict[value] = [athlete_list_elevation[key],]
-    chart_series = [{'options':{'type': 'spline', 'stacking': False}, 'terms':term_dict}]
+    chart_series = [{'options':{'type': 'spline', 'allowPointSelect': True, 'stacking': False}, 'terms':term_dict}]
     # adding pie chart to line chart
-    chart_series.append({'options':{'type': 'pie', 'center': [100, 80], 'size':200}, 'terms':{'type': ['elevation']}})
+    chart_series.append({'options':{'type': 'pie', 'allowPointSelect': True, 'center': [100, 80], 'size':200}, 'terms':{'type': ['elevation']}})
     title = 'Elevation Summary - ' + datetime.today().strftime("%B")
     cht = chartit.Chart(
         datasource=ds,
@@ -216,7 +220,8 @@ def elevation_chart(before, after):
                                  'align': 'left',
                                  'verticalAlign': 'top',
                                  'reversed': 'true',
-                                 'maxHeight':500}
+                                 'maxHeight':500},
+                       'zoomType':'xy'
         }
     )
     return cht

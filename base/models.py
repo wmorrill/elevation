@@ -62,3 +62,6 @@ class activity_type(models.Model):
     elevation = models.FloatField(null=True, blank=True)
     distance = models.FloatField(null=True, blank=True)
 
+    def __str__(self):
+        return self.type
+

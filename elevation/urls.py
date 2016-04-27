@@ -26,6 +26,8 @@ urlpatterns = [
     url(r'^individual/', base.views.individual, name='individual_data'),
     url(r'^force_update/', base.views.force_update, name='force_update'),
     url(r'^faq/', base.views.faq, name='faq'),
+    url(r'^test/', base.views.test, name='test'),
+    url(r'^leaderboard/', base.views.leaderboard, name='leaderboard'),
 
     url(r'^.*/$', base.views.index, name='index'),
 ]
