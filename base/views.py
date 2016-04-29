@@ -8,26 +8,22 @@ from base.models import data_update
 from stravalib.model import ActivityPhoto
 from base.apps import *
 from threading import Thread
+import pytz
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
 this_month = datetime.today().month
 this_year = datetime.today().year
-# before = datetime(this_year, this_month+1, 1)
-before = datetime.now()
-after = datetime(this_year, this_month, 1, tzinfo=before.tzinfo)
+# before and after need to be in UTC time zone
+pst = pytz.timezone('US/Pacific')
+utc = pytz.utc
+before = pst.localize(datetime.now())
+before_utc = before.astimezone(utc)
+after = pst.localize(datetime(this_year, this_month, 1))
+after_utc = after.astimezone(utc)
 
 def faq(request):
     return render(request, 'faq.html', {'leaderboard':get_leaderboard()})
-
-def running(request):
-    return render(request, 'type_leaderboard.html', {})
-
-def riding(request):
-    return render(request, 'type_leaderboard.html', {})
-
-def hiking(request):
-    return render(request, 'type_leaderboard.html', {})
 
 def index(request):
     # check timestamp of last update
@@ -41,12 +37,12 @@ def index(request):
         new_stamp = data_update(time_stamp=datetime.utcnow())
         new_stamp.save()
         # go through each user and update their activities for this month
-        t = Thread(target=data_scraper, args=[after, before])
+        t = Thread(target=data_scraper, args=[after_utc, before_utc])
         t.daemon = True
         t.start()
         # data_scraper(after, before)
     else:
-        print("updated in the last 15 mins at %s" % str(last_check.time_stamp))
+        print("updated in the last 15 mins at %s" % str(last_check.time_stamp.astimezone(pst)))
 
     leaderboard = get_leaderboard()
     elev_chart = elevation_chart(before, after)
@@ -93,7 +89,7 @@ def auth_success(request):
             access_token = token
         )
         new_athlete.save()
-        data_scraper(after, before, client.get_athlete().id)
+        data_scraper(after_utc, before_utc, client.get_athlete().id)
         result = 'added'
     else:
         result = 'already exists'
@@ -104,7 +100,7 @@ def force_update(request):
     new_stamp = data_update(time_stamp=datetime.utcnow())
     new_stamp.save()
     # go through each user and update their activities for this month
-    t = Thread(target=data_scraper, args=[after, before])
+    t = Thread(target=data_scraper, args=[after_utc, before_utc])
     t.daemon = True
     t.start()
     # data_scraper(after, before)

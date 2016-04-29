@@ -9,12 +9,17 @@ from datetime import datetime
 from datetime import timedelta
 import chartit
 from django.db.models import Sum, Count
+import pytz
 
 this_month = datetime.today().month
 this_year = datetime.today().year
-#before = datetime(this_year, this_month+1, 1)
-before = datetime.now()
-after = datetime(this_year, this_month, 1, tzinfo=before.tzinfo)
+# before and after need to be in UTC time zone
+pst = pytz.timezone('US/Pacific')
+utc = pytz.utc
+before = pst.localize(datetime.now())
+before_utc = before.astimezone(utc)
+after = pst.localize(datetime(this_year, this_month, 1))
+after_utc = after.astimezone(utc)
 
 class BaseConfig(AppConfig):
     name = 'base'
@@ -72,7 +77,7 @@ def data_scraper(date_start, date_end, athletes=None):
                     elapsed_time=each_activity.elapsed_time,
                     total_elevation_gain=meters_to_feet*each_activity.total_elevation_gain,
                     type=each_activity.type,
-                    start_date_local=each_activity.start_date_local,
+                    start_date_local=utc.localize(each_activity.start_date_local).astimezone(pst),
                     average_speed=km_to_miles*each_activity.average_speed,
                     calories=each_activity.calories,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
@@ -89,7 +94,7 @@ def data_scraper(date_start, date_end, athletes=None):
             activity.objects.filter(id=extra_activity).delete()
         cum = 0
         # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
-        for each_day in range(1,(date_end-date_start).days+1):
+        for each_day in range(1,(date_end.astimezone(pst)-date_start.astimezone(pst)).days+2):
             this_day = activity.objects.filter(athlete_id = each_athlete).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
             cum += this_day['daily_sum'] or 0
             today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
@@ -110,7 +115,7 @@ def data_scraper(date_start, date_end, athletes=None):
             cum += every_activity.total_elevation_gain
             every_activity.cumulative_elevation = cum
             every_activity.save()
-        month.objects.filter(day__gt=each_day+1).delete()
+        month.objects.filter(day__gt=each_day).delete()
 
     # update the info for the types pie chart
     # find all the types

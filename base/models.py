@@ -56,6 +56,9 @@ class month(models.Model):
     day = models.IntegerField()
     cum_elev = models.FloatField()
 
+    def __str__(self):
+        return str(self.athlete_id) + " " + str(self.day)
+
 class activity_type(models.Model):
     type = models.CharField(primary_key=True, max_length=30)
     quantity = models.IntegerField(null=True, blank=True)
