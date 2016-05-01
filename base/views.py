@@ -96,7 +96,7 @@ def index(request):
     total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
     total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
     total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
-    energy_wasted = 750 * total_elevation * 0.3048 / 3600 / 1000
+    energy_wasted = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 860.421 / 1000
     ghg_prevented = 0.419 * total_distance
     coal_prevented = 0.45 * total_distance
     gasoline_prevented = 0.047 * total_distance
