@@ -16,7 +16,8 @@ pst = pytz.timezone('US/Pacific')
 utc = pytz.utc
 
 # historical dates
-before = pst.localize(datetime(2016, 6, 1))
+before = pst.localize(datetime.now())
+# before = pst.localize(datetime(2016, 6, 1))
 after = pst.localize(datetime(2016, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
@@ -126,11 +127,11 @@ def data_scraper(date_start, date_end, athletes=None):
             cum += every_activity.total_elevation_gain
             every_activity.cumulative_elevation = cum
             every_activity.save()
-        month.objects.filter(day__gt=each_day).delete()
+        month.objects.filter(day__gt=datetime.now().day).delete()
 
     # update the info for the types pie chart
     # find all the types
-    types = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').distinct()
+    types = activity.objects.values('type').distinct()
     elevation_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('total_elevation_gain'))
     distance_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Sum('distance'))
     quantity_by_type = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).values('type').annotate(Count('id'))
@@ -138,10 +139,15 @@ def data_scraper(date_start, date_end, athletes=None):
     for each_value in types:
         each_type = each_value['type']
         # check to see if it already exists
-        this_type = activity_type.objects.filter(type=each_type)
+        this_type = activity_type.objects.filter(pk=each_type)
         if not this_type:
             new_type = activity_type(type = each_type)
             new_type.save()
+        else:
+            clear = this_type[0]
+            print("Clearing: %s" % clear)
+            clear.elevation = 0
+            clear.save()
     for each_item in elevation_by_type:
             this_type = activity_type.objects.filter(pk=each_item['type'])[0]
             this_type.elevation = each_item['total_elevation_gain__sum']
@@ -154,8 +160,9 @@ def data_scraper(date_start, date_end, athletes=None):
             this_type = activity_type.objects.filter(pk=each_item['type'])[0]
             this_type.quantity = each_item['id__count']
             this_type.save()
-    junk_types = activity_type.objects.filter(quantity=0)
+    junk_types = activity_type.objects.filter(elevation=0)
     junk_types.delete()
+    print("Done with Update")
 
 
 def get_athlete_daily_activities(athlete, date_start, date_end):

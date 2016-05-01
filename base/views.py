@@ -17,7 +17,8 @@ pst = pytz.timezone('US/Pacific')
 utc = pytz.utc
 
 # historical dates
-before = pst.localize(datetime(2016, 6, 1))
+before = pst.localize(datetime.now())
+# before = pst.localize(datetime(2016, 6, 1))
 after = pst.localize(datetime(2016, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
@@ -68,7 +69,7 @@ def history(request):
     return render(request, page, {'leaderboard':get_leaderboard()})
 
 def index(request):
-    if datetime.today().day == 1:
+    if datetime.today().day == 1 and datetime.now().hour < 12:
         return render(request, 'get_going.html')
     # check timestamp of last update
     if data_update.objects.all():
