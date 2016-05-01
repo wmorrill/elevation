@@ -68,6 +68,8 @@ def history(request):
     return render(request, page, {'leaderboard':get_leaderboard()})
 
 def index(request):
+    if datetime.today().day == 1:
+        return render(request, 'get_going.html')
     # check timestamp of last update
     if data_update.objects.all():
         last_check = data_update.objects.all().order_by('-id')[0]
