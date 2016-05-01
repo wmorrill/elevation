@@ -16,22 +16,22 @@ requests.packages.urllib3.disable_warnings()
 pst = pytz.timezone('US/Pacific')
 utc = pytz.utc
 
-# # historical dates
-# before = pst.localize(datetime(2015, 6, 1))
-# after = pst.localize(datetime(2015, 5, 1))
-# before_utc = before.astimezone(utc)
-# after_utc = after.astimezone(utc)
-# # ----------------
-
-
-this_month = datetime.today().month
-this_year = datetime.today().year
-# before and after need to be in UTC time zone
-
-before = pst.localize(datetime.now())
+# historical dates
+before = pst.localize(datetime(2016, 5, 1))
+after = pst.localize(datetime(2016, 4, 1))
 before_utc = before.astimezone(utc)
-after = pst.localize(datetime(this_year, this_month, 1))
 after_utc = after.astimezone(utc)
+# ----------------
+
+
+# this_month = datetime.today().month
+# this_year = datetime.today().year
+# # before and after need to be in UTC time zone
+#
+# before = pst.localize(datetime.now())
+# before_utc = before.astimezone(utc)
+# after = pst.localize(datetime(this_year, this_month, 1))
+# after_utc = after.astimezone(utc)
 
 def faq(request):
     return render(request, 'faq.html', {'leaderboard':get_leaderboard()})

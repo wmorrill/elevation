@@ -25,7 +25,7 @@ SECRET_KEY = 'zl*)a-o80h0a#j5xj8+wr+33%=76)xhm^f-yn=+%bjj0fo&w8r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.elevation-challenge.com','127.0.0.1']
 
 
 # Application definition
