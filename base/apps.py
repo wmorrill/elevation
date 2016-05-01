@@ -173,10 +173,47 @@ def get_elevation_sum(daily_dictionary):
 
 def get_leaderboard(activity_type = None):
     if activity_type:
-        query = athlete.objects.filter(activity__type=activity_type).annotate(elevation=Sum('activity__total_elevation_gain')).filter(elevation__gt=0).order_by('-elevation')
-        return query
-    # return a queryset of athletes in order of elevation total
-    return athlete.objects.annotate(elevation=Sum('activity__total_elevation_gain')).filter(elevation__gt=0).order_by('-elevation')
+        query = athlete.objects.raw('SELECT '
+                                        'base_athlete.id, '
+                                        'SUM(total_elevation_gain) AS elevation, '
+                                        'firstname, '
+                                        'lastname, '
+                                        'type '
+                                    'FROM '
+                                        'base_activity '
+                                    'JOIN '
+                                        'base_athlete '
+                                    'ON '
+                                        'base_activity.athlete_id_id = base_athlete.id '
+                                    'WHERE '
+                                        'type = %s AND start_date_local >= %s AND start_date_local <= %s '
+                                    'GROUP BY '
+                                        'base_athlete.id, type '
+                                    'ORDER BY '
+                                        'elevation DESC',
+                                    [activity_type, after, before]
+                                    )
+    else:
+        query = athlete.objects.raw('SELECT '
+                                        'base_athlete.id, '
+                                        'SUM(total_elevation_gain) AS elevation, '
+                                        'firstname, '
+                                        'lastname '
+                                    'FROM '
+                                        'base_activity '
+                                    'JOIN '
+                                        'base_athlete '
+                                    'ON '
+                                        'base_activity.athlete_id_id = base_athlete.id '
+                                    'WHERE '
+                                        'start_date_local >= %s AND start_date_local <= %s '
+                                    'GROUP BY '
+                                        'base_athlete.id '
+                                    'ORDER BY '
+                                        'elevation DESC',
+                                    [after, before]
+                                    )
+    return query
 
 def elev_per_day(activity_set, before, after):
     date_start = after

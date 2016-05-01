@@ -12,11 +12,22 @@ import pytz
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
+# timezone definition
+pst = pytz.timezone('US/Pacific')
+utc = pytz.utc
+
+# # historical dates
+# before = pst.localize(datetime(2015, 6, 1))
+# after = pst.localize(datetime(2015, 5, 1))
+# before_utc = before.astimezone(utc)
+# after_utc = after.astimezone(utc)
+# # ----------------
+
+
 this_month = datetime.today().month
 this_year = datetime.today().year
 # before and after need to be in UTC time zone
-pst = pytz.timezone('US/Pacific')
-utc = pytz.utc
+
 before = pst.localize(datetime.now())
 before_utc = before.astimezone(utc)
 after = pst.localize(datetime(this_year, this_month, 1))
@@ -24,6 +35,37 @@ after_utc = after.astimezone(utc)
 
 def faq(request):
     return render(request, 'faq.html', {'leaderboard':get_leaderboard()})
+
+# def history(request):
+#     hist_before = datetime.strptime(request.GET.get('b'), "%Y-%m-%d")
+#     hist_after = datetime.strptime(request.GET.get('a'), "%Y-%m-%d")
+#     leaderboard = get_leaderboard()
+#     elev_chart = elevation_chart(before, after)
+#     pie_chart = activity_split_chart(before, after)
+#
+#     total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
+#     total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
+#     total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
+#     energy_wasted = 0.07 * total_elevation / (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 1000
+#     ghg_prevented = 0.419 * total_distance
+#     coal_prevented = 0.45 * total_distance
+#     gasoline_prevented = 0.047 * total_distance
+#
+#     return render(request, 'index.html', {'charts':[elev_chart, pie_chart], 'leaderboard':leaderboard,
+#                                           'energy_wasted':int(energy_wasted*1000), 'ghg_prevented':int(ghg_prevented),
+#                                           'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
+#                                           'gasoline_prevented':gasoline_prevented, 'hike_leaderboard':get_leaderboard('Hike'),
+#                                           'ride_leaderboard':get_leaderboard('Ride'), 'run_leaderboard':get_leaderboard('Run')})
+
+def history(request):
+    year = request.GET.get('year')
+    if year in '2014':
+        page = 'May_2014.html'
+    elif year in '2015':
+        page = 'May_2015.html'
+    else:
+        page = 'April_2016.html'
+    return render(request, page, {'leaderboard':get_leaderboard()})
 
 def index(request):
     # check timestamp of last update
@@ -55,12 +97,14 @@ def index(request):
     ghg_prevented = 0.419 * total_distance
     coal_prevented = 0.45 * total_distance
     gasoline_prevented = 0.047 * total_distance
-
+    hours_tv = total_moving_time
+    burritos = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 665 # 800 calories per hour burned, 665 calories per burrito
     return render(request, 'index.html', {'charts':[elev_chart, pie_chart], 'leaderboard':leaderboard,
                                           'energy_wasted':int(energy_wasted*1000), 'ghg_prevented':int(ghg_prevented),
                                           'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
                                           'gasoline_prevented':gasoline_prevented, 'hike_leaderboard':get_leaderboard('Hike'),
-                                          'ride_leaderboard':get_leaderboard('Ride'), 'run_leaderboard':get_leaderboard('Run')})
+                                          'ride_leaderboard':get_leaderboard('Ride'), 'run_leaderboard':get_leaderboard('Run'),
+                                          'tv_not_watched': hours_tv, 'burritos': burritos})
 
 def individual(request):
     leaderboard = get_leaderboard()
