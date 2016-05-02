@@ -323,3 +323,22 @@ def activity_split_chart(before, after):
 
     return cht
 
+def day_of_the_week_chart(before, after):
+    # chart showing elevation sum per day of the week
+    return
+
+def total_elevation_chart(before, after):
+    # same as the individual chart but for all activities
+    return
+
+def activity_eff(before, after):
+    # chart for elevation per activity
+    return
+
+def time_eff(before, after):
+    # chart for elevation vs distance
+    return
+
+def meta_eff(before, after):
+    # chart for time_eff vs dist eff
+    return

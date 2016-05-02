@@ -71,23 +71,27 @@ def history(request):
 def index(request):
     if datetime.today().day == 1 and datetime.now().hour < 12:
         return render(request, 'get_going.html')
-    # check timestamp of last update
-    if data_update.objects.all():
-        last_check = data_update.objects.all().order_by('-id')[0]
-    else:
-        last_check = data_update(time_stamp=datetime.today())
-    # if its been more than some time (15 mins?)
-    if datetime.utcnow() > last_check.time_stamp.replace(tzinfo=datetime.utcnow().tzinfo) + timedelta(minutes=15):
-        # add a new time stamp so no one else updates
-        new_stamp = data_update(time_stamp=datetime.utcnow())
-        new_stamp.save()
-        # go through each user and update their activities for this month
-        t = Thread(target=data_scraper, args=[after_utc, before_utc])
-        t.daemon = True
-        t.start()
-        # data_scraper(after, before)
-    else:
-        print("updated in the last 15 mins at %s" % str(last_check.time_stamp.astimezone(pst)))
+    # # check timestamp of last update
+    # if data_update.objects.all():
+    #     last_check = data_update.objects.all().order_by('-id')[0]
+    # else:
+    #     last_check = data_update(time_stamp=datetime.today())
+    # # if its been more than some time (15 mins?)
+    # print("Now")
+    # print(datetime.utcnow())
+    # print("Last Update")
+    # print(last_check.time_stamp.replace(tzinfo=datetime.utcnow().tzinfo))
+    # if datetime.utcnow() > last_check.time_stamp.replace(tzinfo=datetime.utcnow().tzinfo) + timedelta(minutes=15):
+    #     # add a new time stamp so no one else updates
+    #     new_stamp = data_update(time_stamp=datetime.utcnow())
+    #     new_stamp.save()
+    #     # go through each user and update their activities for this month
+    #     t = Thread(target=data_scraper, args=[after_utc, before_utc])
+    #     t.daemon = True
+    #     t.start()
+    #     # data_scraper(after, before)
+    # else:
+    #     print("updated in the last 15 mins at %s" % str(last_check.time_stamp.astimezone(pst)))
 
     leaderboard = get_leaderboard()
     elev_chart = elevation_chart(before, after)
