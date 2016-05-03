@@ -89,7 +89,7 @@ def data_scraper(date_start, date_end, athletes=None):
                     elapsed_time=each_activity.elapsed_time,
                     total_elevation_gain=meters_to_feet*each_activity.total_elevation_gain,
                     type=each_activity.type,
-                    start_date_local=utc.localize(each_activity.start_date_local).astimezone(pst),
+                    start_date_local=pst.localize(each_activity.start_date_local),
                     average_speed=km_to_miles*each_activity.average_speed,
                     calories=each_activity.calories,
                     day=each_activity.start_date_local.day)# if its not in the database, add it
@@ -106,7 +106,7 @@ def data_scraper(date_start, date_end, athletes=None):
             activity.objects.filter(id=extra_activity).delete()
         cum = 0
         # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
-        for each_day in range(1,(date_end.astimezone(pst)-date_start.astimezone(pst)).days+1):
+        for each_day in range(1,(date_end.astimezone(pst)-date_start.astimezone(pst)).days+2):
             this_day = activity.objects.filter(athlete_id = each_athlete).filter(start_date_local__lte=before).filter(start_date_local__gte=after).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
             cum += this_day['daily_sum'] or 0
             today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
@@ -127,7 +127,7 @@ def data_scraper(date_start, date_end, athletes=None):
             cum += every_activity.total_elevation_gain
             every_activity.cumulative_elevation = cum
             every_activity.save()
-        month.objects.filter(day__gt=datetime.now().day).delete()
+        month.objects.filter(day__gt=datetime.now().day + 1).delete()
 
     # update the info for the types pie chart
     # find all the types
@@ -276,6 +276,7 @@ def elevation_chart(before, after):
         chart_options={'title': {'text': title},
                        'xAxis': {'title': {'text': 'Day'}},
                        'yAxis': {'title': {'text': 'Elevation (feet)'}},
+                       'tooltip': { 'pointFormat': "Value: {point.y:,.0f}"},
                        'legend': {'layout': 'vertical',
                                  'align': 'left',
                                  'verticalAlign': 'top',
@@ -301,7 +302,8 @@ def athlete_chart(this_person):
                         {'options':{'type': 'spline', 'xAxis': 1, 'yAxis':1},
                          'terms':{'day': ['cumulative_elevation']},
                         }],
-        chart_options={'title': {'text': 'Activity Stats'}}
+        chart_options={'title': {'text': 'Activity Stats'},
+                       'tooltip': { 'pointFormat': "Value: {point.y:,.0f}"}}
     )
 
     return cht
@@ -318,7 +320,8 @@ def activity_split_chart(before, after):
         series_options=[{'options':{'type': 'pie'},
                          'terms':{'type': ['elevation']}
                         }],
-        chart_options={'title': {'text': 'Activity Breakdown'}}
+        chart_options={'title': {'text': 'Activity Breakdown'},
+                       'tooltip': { 'pointFormat': "Value: {point.y:,.0f}"}}
     )
 
     return cht

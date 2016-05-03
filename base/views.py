@@ -151,28 +151,30 @@ def force_update(request):
     new_stamp = data_update(time_stamp=datetime.utcnow())
     new_stamp.save()
     # go through each user and update their activities for this month
-    t = Thread(target=data_scraper, args=[after_utc, before_utc])
-    t.daemon = True
-    t.start()
-    # data_scraper(after, before)
+    # t = Thread(target=data_scraper, args=[after_utc, before_utc])
+    # t.daemon = True
+    # t.start()
+    data_scraper(after, before)
     return render(request, 'force_update.html')
 
 def test(request):
-    my_id = 547220628
-    client = Client(access_token='12363c99d46a329f5e810e3fb7135bc45caaa7c7')
-    photos = client.get_activity_photos(my_id)
-
-    # this_activity = client.get_activity(547220628)
-    print("###############DEBUG##############")
-    # print(this_activity_photos)
-    # for photo in this_activity_photos:
-    #     print(photo.urls)
-    print(photos)
-    # for item in this_activity:
-    #     print('made it here')
-    #     print(item)
-    #     print(item.calories)
-    #     print(item.photos)
+    # my_id = 547220628
+    # client = Client(access_token='12363c99d46a329f5e810e3fb7135bc45caaa7c7')
+    # photos = client.get_activity_photos(my_id)
+    #
+    # # this_activity = client.get_activity(547220628)
+    # print("###############DEBUG##############")
+    # # print(this_activity_photos)
+    # # for photo in this_activity_photos:
+    # #     print(photo.urls)
+    # print(photos)
+    # # for item in this_activity:
+    # #     print('made it here')
+    # #     print(item)
+    # #     print(item.calories)
+    # #     print(item.photos)
+    print("nuking data...")
+    activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).delete()
     print("##################################")
     return render(request, 'test.html', {'result1': 1, 'result2': 2})
 
