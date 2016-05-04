@@ -71,6 +71,7 @@ def history(request):
 def index(request):
     if datetime.today().day == 1 and datetime.now().hour < 12:
         return render(request, 'get_going.html')
+    last_check = data_update.objects.all().order_by('-id')[0].time_stamp
     # # check timestamp of last update
     # if data_update.objects.all():
     #     last_check = data_update.objects.all().order_by('-id')[0]
@@ -111,7 +112,7 @@ def index(request):
                                           'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
                                           'gasoline_prevented':gasoline_prevented, 'hike_leaderboard':get_leaderboard('Hike'),
                                           'ride_leaderboard':get_leaderboard('Ride'), 'run_leaderboard':get_leaderboard('Run'),
-                                          'tv_not_watched': hours_tv, 'burritos': burritos})
+                                          'tv_not_watched': hours_tv, 'burritos': burritos, 'last_update':last_check})
 
 def individual(request):
     leaderboard = get_leaderboard()
