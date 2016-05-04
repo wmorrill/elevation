@@ -17,8 +17,8 @@ pst = pytz.timezone('US/Pacific')
 utc = pytz.utc
 
 # historical dates
-before = pst.localize(datetime.now())
-# before = pst.localize(datetime(2016, 6, 1))
+# before = pst.localize(datetime.now())
+before = pst.localize(datetime(2016, 6, 1))
 after = pst.localize(datetime(2016, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
@@ -148,7 +148,7 @@ def auth_success(request):
 
 def force_update(request):
     #get_activity_photos()
-    new_stamp = data_update(time_stamp=datetime.utcnow())
+    new_stamp = data_update(time_stamp=utc.localize(datetime.utcnow()).astimezone(pst))
     new_stamp.save()
     # go through each user and update their activities for this month
     # t = Thread(target=data_scraper, args=[after_utc, before_utc])
