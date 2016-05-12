@@ -280,7 +280,7 @@ def elevation_chart(before, after):
         chart_options={'title': {'text': title},
                        'xAxis': {'title': {'text': 'Day'}},
                        'yAxis': {'title': {'text': 'Elevation (feet)'}},
-                       'tooltip': { 'pointFormat': "Value: {point.y:,.0f}"},
+                       'tooltip': { 'valueDecimals': "0"},
                        'legend': {'layout': 'vertical',
                                  'align': 'left',
                                  'verticalAlign': 'top',
