@@ -77,13 +77,13 @@ def data_scraper(date_start, date_end, athletes=None):
         this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
         relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
         # print(relevant_existing_activities)
-        print(each_athlete, this_athlete_activities)
+        print(each_athlete)
         for each_activity in this_athlete_activities:  # for each activity
             if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
                 new_activity = activity(
                     id=each_activity.id,
                     athlete_id=athlete.objects.filter(pk=each_activity.athlete.id)[0],
-                    name=each_activity.name,
+                    name=each_activity.name[0:139],
                     distance=meters_to_miles*each_activity.distance,
                     moving_time=each_activity.moving_time,
                     elapsed_time=each_activity.elapsed_time,
@@ -166,6 +166,8 @@ def data_scraper(date_start, date_end, athletes=None):
             this_type.save()
     junk_types = activity_type.objects.filter(elevation=0)
     junk_types.delete()
+
+    determine_rank_delta(get_leaderboard())
     print("Done with Update")
 
 
@@ -200,6 +202,7 @@ def get_leaderboard(activity_type = None):
                                         'SUM(total_elevation_gain) AS elevation, '
                                         'firstname, '
                                         'lastname, '
+                                        'rank_delta, '
                                         'type '
                                     'FROM '
                                         'base_activity '
@@ -236,6 +239,22 @@ def get_leaderboard(activity_type = None):
                                     [after, before]
                                     )
     return query
+
+def determine_rank_delta(leaderboard):
+    i = 0
+    for each_athlete in leaderboard:
+        i+=1
+        this_athlete = athlete.objects.filter(id = each_athlete.id)[0]
+        # check current rank vs existing rank
+        previous_rank = this_athlete.rank
+        if previous_rank < i:
+            this_athlete.rank_delta = -1
+            this_athlete.rank = i
+            this_athlete.save()
+        elif previous_rank > i:
+            this_athlete.rank_delta = 1
+            this_athlete.rank = i
+            this_athlete.save()
 
 def elev_per_day(activity_set, before, after):
     date_start = after

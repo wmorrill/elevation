@@ -149,8 +149,11 @@ def auth_success(request):
 
 def force_update(request):
     #get_activity_photos()
-    new_stamp = data_update(time_stamp=utc.localize(datetime.utcnow()).astimezone(pst))
-    new_stamp.save()
+    last_update = data_update.objects.all()[0]
+    last_update.time_stamp=utc.localize(datetime.utcnow()).astimezone(pst)
+    last_update.save()
+    # new_stamp = data_update(time_stamp=utc.localize(datetime.utcnow()).astimezone(pst))
+    # new_stamp.save()
     # go through each user and update their activities for this month
     # t = Thread(target=data_scraper, args=[after_utc, before_utc])
     # t.daemon = True
@@ -175,7 +178,9 @@ def test(request):
     # #     print(item.calories)
     # #     print(item.photos)
     print("nuking data...")
-    activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).delete()
+    # activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).delete()
+    last_update = data_update.objects.all()[:1]
+    data_update.objects.exclude(time_stamp=last_update[0].time_stamp).delete()
     print("##################################")
     return render(request, 'test.html', {'result1': 1, 'result2': 2})
 

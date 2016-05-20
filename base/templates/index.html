@@ -23,12 +23,25 @@
             <table class="CSSTableGenerator">
                 <tr>
                     <th>Rank </th>
+                    <th></th>
                     <th>Name </th>
                     <th>Elevation (ft) </th>
                 </tr>
                 {% for item in leaderboard %}
                 <tr>
                     <td> {{ forloop.counter|ordinal }}</td>
+                    <script type="text/javascript">
+                        rank = {{ item.rank_delta }}
+                        if (rank > 0){
+                        document.write("<td><span class='glyphicon glyphicon-arrow-up'></span></td>")
+                        }
+                        else if (rank < 0){
+                        document.write("<td><span class='glyphicon glyphicon-arrow-down'></span></td>")
+                        }
+                        else{
+                        document.write("<td> </td>")
+                        }
+                    </script>
                     <td> <a href="/individual/?id={{ item.id }}">{{ item.firstname }} {{ item.lastname }}</a></td>
                     <td> {{ item.elevation|floatformat:2 }}</td>
                 </tr>
