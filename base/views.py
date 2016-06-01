@@ -69,8 +69,8 @@ def history(request):
     return render(request, page, {'leaderboard':get_leaderboard()})
 
 def index(request):
-    if datetime.today().day == 1 and datetime.now().hour < 12:
-        return render(request, 'get_going.html')
+    # if datetime.today().day == 1 and datetime.now().hour < 12:
+    #     return render(request, 'get_going.html')
     last_check = data_update.objects.all().order_by('-id')[0].time_stamp
     # # check timestamp of last update
     # if data_update.objects.all():
@@ -177,10 +177,8 @@ def test(request):
     # #     print(item)
     # #     print(item.calories)
     # #     print(item.photos)
-    print("nuking data...")
-    # activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).delete()
-    last_update = data_update.objects.all()[:1]
-    data_update.objects.exclude(time_stamp=last_update[0].time_stamp).delete()
+    print("test...")
+    get_emails()
     print("##################################")
     return render(request, 'test.html', {'result1': 1, 'result2': 2})
 
