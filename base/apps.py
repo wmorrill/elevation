@@ -107,7 +107,7 @@ def data_scraper(date_start, date_end, athletes=None):
             #     activity.objects.filter(id=extra_activity).delete()
             cum = 0
             # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
-            if 0 and date_end.astimezone(pst) > utc.localize(datetime.utcnow()).astimezone(pst):
+            if date_end.astimezone(pst) > utc.localize(datetime.utcnow()).astimezone(pst):
                 end_date = utc.localize(datetime.utcnow()).astimezone(pst)
             else:
                 end_date = date_end.astimezone(pst)
