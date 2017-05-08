@@ -113,7 +113,7 @@ def data_scraper(date_start, date_end, athletes=None):
                 end_date = date_end.astimezone(pst)
             for each_day in range(1,(end_date.astimezone(pst)-date_start.astimezone(pst)).days+2):
                 this_day = activity.objects.filter(athlete_id = each_athlete).filter(start_date_local__lte=before).filter(start_date_local__gte=after).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
-                cum += this_day['daily_sum'] or 0
+                cum += this_day['daily_sum'] #or 0
                 today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
                 if today:
                     for existing_day in today:
