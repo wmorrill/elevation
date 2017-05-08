@@ -134,7 +134,7 @@ def data_scraper(date_start, date_end, athletes=None):
                 every_activity.save()
             # month.objects.filter(day__gt=datetime.now().day + 1).delete()
         except:
-            print("Not Authorized: " + each_athlete)
+            print("Not Authorized: " + each_athlete.firstname + " " + each_athlete.lastname)
 
     # update the info for the types pie chart
     # find all the types
