@@ -73,68 +73,68 @@ def data_scraper(date_start, date_end, athletes=None):
     else:
         athlete_list = athlete.objects.all() # get list of all athletes
     for each_athlete in athlete_list: # for each athlete
-        try:
-            client = Client(access_token=each_athlete.access_token)
-            this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
-            relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
-            # print(relevant_existing_activities)
-            print(each_athlete, len(relevant_existing_activities))
-            # for each_activity in this_athlete_activities:  # for each activity
-            #     if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
-            #         new_activity = activity(
-            #             id=each_activity.id,
-            #             athlete_id=athlete.objects.filter(pk=each_activity.athlete.id)[0],
-            #             name=each_activity.name[0:139],
-            #             distance=meters_to_miles*each_activity.distance,
-            #             moving_time=each_activity.moving_time,
-            #             elapsed_time=each_activity.elapsed_time,
-            #             total_elevation_gain=meters_to_feet*each_activity.total_elevation_gain,
-            #             type=each_activity.type,
-            #             start_date_local=pst.localize(each_activity.start_date_local),
-            #             average_speed=km_to_miles*each_activity.average_speed,
-            #             calories=each_activity.calories,
-            #             day=each_activity.start_date_local.day)# if its not in the database, add it
-            #         new_activity.save()
-            #         get_activity_photos(client, each_activity.id)
-            #     else:
-            #         get_activity_photos(client, each_activity.id)
-            #         try:
-            #             relevant_existing_activities.remove(each_activity.id)
-            #         except ValueError:
-            #             pass  # print("item %d in black hole" % each_activity.id)
-            # for extra_activity in relevant_existing_activities:
-            #     print('removing item %d from database since it doesnt exist on strava'%extra_activity)
-            #     activity.objects.filter(id=extra_activity).delete()
-            cum = 0
-            # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
-            if date_end.astimezone(pst) > utc.localize(datetime.utcnow()).astimezone(pst):
-                end_date = utc.localize(datetime.utcnow()).astimezone(pst)
+        # try:
+        client = Client(access_token=each_athlete.access_token)
+        this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
+        relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
+        # print(relevant_existing_activities)
+        print(each_athlete, len(relevant_existing_activities))
+        # for each_activity in this_athlete_activities:  # for each activity
+        #     if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
+        #         new_activity = activity(
+        #             id=each_activity.id,
+        #             athlete_id=athlete.objects.filter(pk=each_activity.athlete.id)[0],
+        #             name=each_activity.name[0:139],
+        #             distance=meters_to_miles*each_activity.distance,
+        #             moving_time=each_activity.moving_time,
+        #             elapsed_time=each_activity.elapsed_time,
+        #             total_elevation_gain=meters_to_feet*each_activity.total_elevation_gain,
+        #             type=each_activity.type,
+        #             start_date_local=pst.localize(each_activity.start_date_local),
+        #             average_speed=km_to_miles*each_activity.average_speed,
+        #             calories=each_activity.calories,
+        #             day=each_activity.start_date_local.day)# if its not in the database, add it
+        #         new_activity.save()
+        #         get_activity_photos(client, each_activity.id)
+        #     else:
+        #         get_activity_photos(client, each_activity.id)
+        #         try:
+        #             relevant_existing_activities.remove(each_activity.id)
+        #         except ValueError:
+        #             pass  # print("item %d in black hole" % each_activity.id)
+        # for extra_activity in relevant_existing_activities:
+        #     print('removing item %d from database since it doesnt exist on strava'%extra_activity)
+        #     activity.objects.filter(id=extra_activity).delete()
+        cum = 0
+        # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
+        if date_end.astimezone(pst) > utc.localize(datetime.utcnow()).astimezone(pst):
+            end_date = utc.localize(datetime.utcnow()).astimezone(pst)
+        else:
+            end_date = date_end.astimezone(pst)
+        for each_day in range(1,(end_date.astimezone(pst)-date_start.astimezone(pst)).days+2):
+            this_day = activity.objects.filter(athlete_id = each_athlete).filter(start_date_local__lte=before).filter(start_date_local__gte=after).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
+            cum += this_day['daily_sum'] or 0
+            today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
+            if today:
+                for existing_day in today:
+                    existing_day.cum_elev = cum
+                    existing_day.save()
             else:
-                end_date = date_end.astimezone(pst)
-            for each_day in range(1,(end_date.astimezone(pst)-date_start.astimezone(pst)).days):#+2):
-                this_day = activity.objects.filter(athlete_id = each_athlete).filter(start_date_local__lte=before).filter(start_date_local__gte=after).filter(day=each_day).aggregate(daily_sum = Sum('total_elevation_gain'))
-                cum += this_day['daily_sum'] or 0
-                today = month.objects.filter(athlete_id = each_athlete).filter(day = each_day)
-                if today:
-                    for existing_day in today:
-                        existing_day.cum_elev = cum
-                        existing_day.save()
-                else:
-                    new_day = month(
-                        athlete_id = each_athlete,
-                        day = each_day,
-                        cum_elev = cum
-                    )
-                    new_day.save()
-            all_athlete_activities = activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start).order_by('start_date_local')
-            cum = 0
-            for every_activity in all_athlete_activities:
-                cum += every_activity.total_elevation_gain
-                every_activity.cumulative_elevation = cum
-                every_activity.save()
-            # month.objects.filter(day__gt=datetime.now().day + 1).delete()
-        except:
-            print("Not Authorized: " + each_athlete.firstname + " " + each_athlete.lastname)
+                new_day = month(
+                    athlete_id = each_athlete,
+                    day = each_day,
+                    cum_elev = cum
+                )
+                new_day.save()
+        all_athlete_activities = activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start).order_by('start_date_local')
+        cum = 0
+        for every_activity in all_athlete_activities:
+            cum += every_activity.total_elevation_gain
+            every_activity.cumulative_elevation = cum
+            every_activity.save()
+        # month.objects.filter(day__gt=datetime.now().day + 1).delete()
+        # except:
+        #     print("Not Authorized: " + each_athlete.firstname + " " + each_athlete.lastname)
 
     # update the info for the types pie chart
     # find all the types
