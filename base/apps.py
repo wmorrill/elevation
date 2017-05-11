@@ -78,7 +78,7 @@ def data_scraper(date_start, date_end, athletes=None):
             this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
             relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
             # print(relevant_existing_activities)
-            print(each_athlete)
+            print(each_athlete, date_start, date_end, len(relevant_existing_activities))
             # for each_activity in this_athlete_activities:  # for each activity
             #     if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
             #         new_activity = activity(
