@@ -106,7 +106,7 @@ def data_scraper(date_start, date_end, athletes=None):
             for extra_activity in relevant_existing_activities:
                 print('removing item %d from database since it doesnt exist on strava'%extra_activity)
                 activity.objects.filter(id=extra_activity).delete()
-        except HTTPError:
+        except:
             print("Not Authorized: " + each_athlete.firstname + " " + each_athlete.lastname)
         cum = 0
         # for this_activity in activity.objects.filter(athlete_id = each_athlete).order_by('start_date_local'):
