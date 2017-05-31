@@ -119,6 +119,7 @@ def individual(request):
     athlete_id = request.GET.get('id')
     print(athlete_id)
     this_person = athlete.objects.filter(id = athlete_id)
+    data_scraper(after_utc, before_utc, this_person)
     chart = athlete_chart(this_person)
     activity_list = activity.objects.filter(athlete_id = this_person).filter(start_date_local__lte=before).filter(start_date_local__gte=after).order_by('start_date_local')
     return render(request, 'individual.html', {'this_person': this_person, 'sample_chart': chart, 'activity_list':activity_list, 'leaderboard':leaderboard})
