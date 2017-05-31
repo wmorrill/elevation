@@ -150,15 +150,17 @@ def auth_success(request):
 def force_update(request):
     #get_activity_photos()
     last_update = data_update.objects.all()[0]
+    # data_scraper(last_update.time_stamp, before)
     last_update.time_stamp=utc.localize(datetime.utcnow()).astimezone(pst)
     last_update.save()
+    data_scraper(last_update.time_stamp-timedelta(days=5), before)
     # new_stamp = data_update(time_stamp=utc.localize(datetime.utcnow()).astimezone(pst))
     # new_stamp.save()
     # go through each user and update their activities for this month
     # t = Thread(target=data_scraper, args=[after_utc, before_utc])
     # t.daemon = True
     # t.start()
-    data_scraper(after, before)
+    # data_scraper(after, before)
     return render(request, 'force_update.html')
 
 def test(request):
