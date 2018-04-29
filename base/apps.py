@@ -17,8 +17,8 @@ utc = pytz.utc
 
 # historical dates
 # before = pst.localize(datetime.now())
-before = pst.localize(datetime(2017, 6, 1))
-after = pst.localize(datetime(2017, 5, 1))
+before = pst.localize(datetime(2018, 6, 1))
+after = pst.localize(datetime(2018, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
 # ----------------
