@@ -97,8 +97,12 @@ def index(request):
     #     print("updated in the last 15 mins at %s" % str(last_check.time_stamp.astimezone(pst)))
 
     leaderboard = get_leaderboard()
-    elev_chart = elevation_chart(before, after)
-    pie_chart = activity_split_chart(before, after)
+    try:
+		elev_chart = elevation_chart(before, after)
+		pie_chart = activity_split_chart(before, after)
+	except APIInputError:
+		elev_cart = ""
+		pie_chart = ""
 
     total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
     total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
