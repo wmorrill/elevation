@@ -100,19 +100,27 @@ def index(request):
     try:
         elev_chart = elevation_chart(before, after)
         pie_chart = activity_split_chart(before, after)
+        total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
+        total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
+        total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
+        energy_wasted = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 860.421 / 1000
+        ghg_prevented = 0.419 * total_distance
+        coal_prevented = 0.45 * total_distance
+        gasoline_prevented = 0.047 * total_distance
+        hours_tv = total_moving_time
+        burritos = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 665 # 800 calories per hour burned, 665 calories per burrito
     except:
         elev_cart = ""
         pie_chart = ""
-
-    total_distance = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(distance_sum=Sum('distance'))['distance_sum']
-    total_elevation = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(elevation_sum=Sum('total_elevation_gain'))['elevation_sum']
-    total_moving_time = activity.objects.filter(start_date_local__lte=before).filter(start_date_local__gte=after).aggregate(moving_time_sum=Sum('moving_time'))['moving_time_sum']
-    energy_wasted = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 860.421 / 1000
-    ghg_prevented = 0.419 * total_distance
-    coal_prevented = 0.45 * total_distance
-    gasoline_prevented = 0.047 * total_distance
-    hours_tv = total_moving_time
-    burritos = 800 * (total_moving_time.days * 24 + total_moving_time.seconds / 3600) / 665 # 800 calories per hour burned, 665 calories per burrito
+        burritos = 0
+        hours_tv = 0
+        coal_prevented = 0
+        ghg_prevented = 0
+        energy_wasted = 0
+        total_moving_time = 0
+        total_distance = 0
+        total_elevation = 0
+    
     return render(request, 'index.html', {'charts':[elev_chart, pie_chart], 'leaderboard':leaderboard,
                                           'energy_wasted':int(energy_wasted*1000), 'ghg_prevented':int(ghg_prevented),
                                           'total_elevation':int(total_elevation), 'coal_prevented':coal_prevented,
