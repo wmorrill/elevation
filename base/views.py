@@ -100,7 +100,7 @@ def index(request):
     try:
         elev_chart = elevation_chart(before, after)
         pie_chart = activity_split_chart(before, after)
-    except APIInputError:
+    except:
         elev_cart = ""
         pie_chart = ""
 
