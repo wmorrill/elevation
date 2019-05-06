@@ -30,7 +30,7 @@ def data_scraper(date_end, date_start, athletes=None):
     for each_athlete in athlete_list: # for each athlete
         client = Client(access_token=each_athlete.access_token)
         this_athlete_activities = client.get_activities(date_end, date_start)  # get list of activities for this month
-        relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start)]
+        relevant_existing_activities = [this.id for this in activity.objects.filter(athlete_id=each_athlete).filter(start_date_local__lte=date_end).filter(start_date_local__gte=date_start).filter(activity_type!=EBIKERIDE)]
         # print(relevant_existing_activities)
         # print(each_athlete, this_athlete_activities)
         for each_activity in this_athlete_activities:  # for each activity
