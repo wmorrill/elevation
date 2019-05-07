@@ -66,7 +66,7 @@ def history(request):
         page = 'May_2015.html'
     elif year in '2016':
         page = 'May_2016.html'
-    else:
+    elif year in '2017':
         page = 'May_2017.html'
 	else:
         page = 'May_2018.html'
