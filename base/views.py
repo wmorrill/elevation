@@ -68,7 +68,7 @@ def history(request):
         page = 'May_2016.html'
     elif year in '2017':
         page = 'May_2017.html'
-	else:
+    else:
         page = 'May_2018.html'
     return render(request, page, {'leaderboard':get_leaderboard()})
 
