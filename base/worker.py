@@ -18,6 +18,8 @@ after = pst.localize(datetime(2018, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
 
+def deEmojify(inputString):
+    return inputString.encode('ascii', 'ignore').decode('ascii')
 
 def data_scraper(date_end, date_start, athletes=None):
     meters_to_miles = 0.000621371
@@ -36,9 +38,9 @@ def data_scraper(date_end, date_start, athletes=None):
         for each_activity in this_athlete_activities:  # for each activity
             if not activity.objects.filter(pk=each_activity.id):# check if its already in the database
                 new_activity = activity(
-                    id=each_activity.id,
+                    id=deEmojify(each_activity.id),
                     athlete_id=athlete.objects.filter(pk=each_activity.athlete.id)[0],
-                    name=each_activity.name,
+                    name=deEmojify(each_activity.name),
                     distance=meters_to_miles*each_activity.distance,
                     moving_time=each_activity.moving_time,
                     elapsed_time=each_activity.elapsed_time,
