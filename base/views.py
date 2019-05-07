@@ -18,8 +18,8 @@ utc = pytz.utc
 
 # historical dates
 # before = pst.localize(datetime.now())
-before = pst.localize(datetime(2018, 6, 1))
-after = pst.localize(datetime(2018, 5, 1))
+before = pst.localize(datetime(2019, 6, 1))
+after = pst.localize(datetime(2019, 5, 1))
 before_utc = before.astimezone(utc)
 after_utc = after.astimezone(utc)
 # ----------------
@@ -68,6 +68,8 @@ def history(request):
         page = 'May_2016.html'
     else:
         page = 'May_2017.html'
+	else:
+        page = 'May_2018.html'
     return render(request, page, {'leaderboard':get_leaderboard()})
 
 def index(request):
